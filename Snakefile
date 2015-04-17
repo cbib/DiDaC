@@ -11,7 +11,7 @@ rule process_sample_1:
 
 
 
-good_ids=range(1,100)
+good_ids=list(range(1,100))
 good_ids.remove(7)
 good_ids.remove(21)
 good_ids.remove(21)
