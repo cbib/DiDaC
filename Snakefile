@@ -9,14 +9,8 @@ rule process_sample_1:
 			python src/principal.py --samplekey {SAMPLE} --cfastq {input} > {output} 2> {log}
 		"""
 
-
-
-good_ids=list(range(1,100))
-good_ids.remove(7)
-good_ids.remove(21)
-good_ids.remove(30)
-
+sam2test = open("data/samples2analyse.txt",'r').readlines()
 
 rule some_samples:
-	input: expand("output/alterations/sample_{id}_1.tsv",id=range(1,100))
+	input: expand("output/alterations/sample_{id}_1.tsv",id=sam2test)
 
