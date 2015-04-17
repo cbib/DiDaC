@@ -40,6 +40,7 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 
 
 	# TODO: Test presence of cycles, abort if yes
+	# TODO: Create output gml dir if needed
 
 	# G_ref_merge = VISU.merge_reference_graph(G_ref.copy())
 	# G_ref_visu = VISU.reference_graph_visualization_formatting(G_ref.copy())
