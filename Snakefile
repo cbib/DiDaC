@@ -1,8 +1,23 @@
-rule some_samples:
-	input: "data/fastq/all_pool_trimmed0.1/C_2_1.fastq"
-	output: "output/alterations/sample_2_1.tsv"
-	log: "output/logs/sample_2_1.txt"
+
+
+rule process_sample_1:
+	input: c_term="data/fastq/all_pool_trimmed0.1/C_{SAMPLE}.fastq", n_term="data/fastq/all_pool_trimmed0.1/N_{SAMPLE}.fastq"
+	output: "output/alterations/sample_{SAMPLE}.tsv"
+	log: "output/logs/sample_{SAMPLE}.txt"
 	shell:
 		"""
-			python src/principal.py --samplekey 2 --cfastq {input} > {output} 2> {log}
+			python src/principal.py --samplekey {SAMPLE} --cfastq {input} > {output} 2> {log}
 		"""
+
+
+
+good_ids=range(1,100)
+good_ids.remove(7)
+good_ids.remove(21)
+good_ids.remove(21)
+good_ids.remove(30)
+
+
+rule some_samples:
+	input: expand("output/alterations/sample_{id}_1.tsv",id=range(1,100))
+
