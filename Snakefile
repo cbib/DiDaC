@@ -13,5 +13,5 @@ sam2test = open("data/samples2analyse.txt",'r').readlines()
 sam2test = map(str.strip, sam2test)
 
 rule some_samples:
-	input: expand("output/alterations/{id}.tsv",id=sam2test)
+	input: expand("output/alterations/{SAMPLE}.tsv",SAMPLE=sam2test)
 
