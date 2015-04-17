@@ -6,7 +6,7 @@ rule process_sample_1:
 	log: "output/logs/{SAMPLE}.txt"
 	shell:
 		"""
-			python src/principal.py --samplekey {SAMPLE} --cfastq {input} > {output} 2> {log}
+			python src/principal.py --samplekey {SAMPLE} --cfastq {input.c_term} --nfastq {input.n_term} --npermutations 1000 > {output} 2> {log}
 		"""
 
 sam2test = open("data/samples2analyse.txt",'r').readlines()
