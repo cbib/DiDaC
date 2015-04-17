@@ -1,5 +1,5 @@
 DiDaC
 =====
 
-PacBio Variant Caller
-Differential DNA Copy
+* PacBio Variant Caller
+* Differential DNA Copy
