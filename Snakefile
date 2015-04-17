@@ -12,5 +12,5 @@ rule process_sample_1:
 sam2test = open("data/samples2analyse.txt",'r').readlines()
 
 rule some_samples:
-	input: expand("output/alterations/{id}_1.tsv",id=sam2test)
+	input: expand("output/alterations/{id}.tsv",id=sam2test)
 
