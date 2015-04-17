@@ -9,9 +9,12 @@ rule process_sample:
 			python src/principal.py --samplekey {SAMPLE} --cfastq {input.c_term} --nfastq {input.n_term} --npermutations 1000 > {output} 2> {log}
 		"""
 
-sam2test = open("data/samples2analyse.txt",'r').readlines()
-sam2test = map(str.strip, sam2test)
-
 rule some_samples:
+	sam2test = open("data/samples2analyse.txt",'r').readlines()
+	sam2test = map(str.strip, sam2test)
 	input: expand("output/alterations/{SAMPLE}.tsv",SAMPLE=sam2test)
+
+
+
+
 
