@@ -88,7 +88,7 @@ if __name__ == "__main__":
 	parser.add_argument('--nfastq', help='FASTQ file for N terminal reads', required=False, type=str)
 	parser.add_argument('--samplekey', help='Unique sample key', default="", type=str, required=True)
 	parser.add_argument("--npermutations", help="number of permutations / random samples to perform", default=10, type=int, required=False)
-	parser.add_argument("--destdir", help="Output directory", default=".", type=str, required=False)
+	parser.add_argument("--destdir", help="Output directory", default="output_gmls", type=str, required=False)
 
 	# k = 20
 	# c_fastq_file = "dbg/data/fatsq_test/C_158_1.fastq"
