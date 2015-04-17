@@ -7,6 +7,8 @@ import os
 import time
 import networkx as nx
 from argparse import ArgumentParser
+import logging
+
 
 ## parameters
 
@@ -15,6 +17,19 @@ import reference_graph as RG
 import visualization as VISU
 from individu_graph import individu_graph as IG
 from randomreads_graph import randomreads_graph as RRG
+
+import logging
+
+if "logger" not in globals():
+	logger = logging.getLogger('PACBIOP53')
+	logger.setLevel(logging.DEBUG)
+	ch = logging.StreamHandler()
+	ch.setLevel(logging.DEBUG)
+	formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s', "%Y-%m-%d %H:%M:%S")
+	ch.setFormatter(formatter)
+	logger.addHandler(ch)
+
+logger = logging.getLogger('PACBIOP53')
 
 
 def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file=None, min_support_percentage=3, n_permutations=1000, destination_directory="."):
@@ -67,18 +82,23 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	### Permutation test ###
 
 	G_test.alteration_list_init(G_ref, kmer_length)  # .alteration_list creation
-	print time.strftime('%d/%m/%y %H:%M', time.localtime())
+	# print time.strftime('%d/%m/%y %H:%M', time.localtime())
+	logger.info("Will create random graphs")
 	for i in range(0, n_permutations):
 		G_random = RRG(G_test.coverage, kmer_length)
 		for i_alteration in range(0, len(G_test.alteration_list)):
 			G_test.alteration_list[i_alteration].random_count_list.append(G_random.check_path(G_test.alteration_list[i_alteration].alternative_path))
 
-	print time.strftime('%d/%m/%y %H:%M', time.localtime())
+	logger.info("Will generate p-values")
 	for i_alteration in range(0, len(G_test.alteration_list)):
 		G_test.alteration_list[i_alteration].pvalue_init()
-		print"%s vs %s pvalue: %f (%d)" % (
-		G_test.alteration_list[i_alteration].reference_sequence, G_test.alteration_list[i_alteration].alternative_sequence, G_test.alteration_list[i_alteration].pvalue,
-		G_test.alteration_list[i_alteration].read_count)
+		print "%s\t%s\t%s\t%f\t%d" % (
+		sample_key,
+		G_test.alteration_list[i_alteration].reference_sequence,
+		G_test.alteration_list[i_alteration].alternative_sequence,
+		G_test.alteration_list[i_alteration].pvalue,
+		G_test.alteration_list[i_alteration].read_count
+		)
 
 
 if __name__ == "__main__":
