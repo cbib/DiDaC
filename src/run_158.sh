@@ -1,0 +1,1 @@
+python src/principal.py --samplekey 158 --cfastq data/fastq/all_pool_trimmed0.1/C_158_1.fastq
