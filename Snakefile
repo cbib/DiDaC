@@ -1,6 +1,6 @@
 
 
-rule process_sample_1:
+rule process_sample:
 	input: c_term="data/fastq/all_pool_trimmed0.1/C_{SAMPLE}.fastq", n_term="data/fastq/all_pool_trimmed0.1/N_{SAMPLE}.fastq"
 	output: "output/alterations/{SAMPLE}.tsv"
 	log: "output/logs/{SAMPLE}.txt"
@@ -10,6 +10,7 @@ rule process_sample_1:
 		"""
 
 sam2test = open("data/samples2analyse.txt",'r').readlines()
+sam2test = map(str.strip, sam2test)
 
 rule some_samples:
 	input: expand("output/alterations/{id}.tsv",id=sam2test)
