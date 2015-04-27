@@ -96,7 +96,7 @@ def merge_individu_graph(input_graph, reference_graph):
 		meta_node_lbl = "_".join(bunch)
 		# color the meta node with the 'ref_list' attribut from all nodes present of the meta node
 		read_list_meta_node = []
-		fonction_read_list = lambda x: merged_graph.node[x]['reads_list_n']
+		fonction_read_list = lambda x: merged_graph.node[x]['read_list_n']
 		ref_list_meta_node = []
 		fonction_ref = lambda x: reference_graph.node[x]['ref_list'].keys()
 		condition = 0
@@ -106,9 +106,9 @@ def merge_individu_graph(input_graph, reference_graph):
 				condition = 1
 				ref_list_meta_node += fonction_ref(node)
 		if condition == 1:
-			merged_graph.add_node(meta_node_lbl, length=len(bunch), ref_list=set(ref_list_meta_node), reads_list_n=len(set(read_list_meta_node)))  # je donne un poids au noeud
+			merged_graph.add_node(meta_node_lbl, length=len(bunch), ref_list=set(ref_list_meta_node), read_list_n=len(set(read_list_meta_node)))  # je donne un poids au noeud
 		else:
-			merged_graph.add_node(meta_node_lbl, length=len(bunch), ref_list={"alt": 1}, reads_list_n=len(set(read_list_meta_node)))  # je donne un poids au noeud
+			merged_graph.add_node(meta_node_lbl, length=len(bunch), ref_list={"alt": 1}, read_list_n=len(set(read_list_meta_node)))  # je donne un poids au noeud
 		merged_graph.remove_nodes_from(bunch)  # j'efface tout
 		merged_graph.add_edge(entry_point, meta_node_lbl)  # j'ajoute une arrete entre mon noeud précédent le méta noeud et le méta noeud
 		merged_graph.add_edge(meta_node_lbl, exit_point)  # j'ajoute une arrete entre mon noeuds suivant le méta noeud le méta noeud
@@ -126,7 +126,7 @@ def individu_graph_visualization_formating(input_graph, reference_graph):
 			graph2visu.node[node]['ref_list'] = str(";".join(sorted(reference_graph.node[node]['ref_list'])))
 		else:
 			graph2visu.node[node]['ref_list'] = "alt"
-		graph2visu.node[node]['reads_list_n'] = len(set(graph2visu.node[node]['reads_list_n']))
+		graph2visu.node[node]['read_list_n'] = len(set(graph2visu.node[node]['read_list_n']))
 		del graph2visu.node[node]['fragment']
 	return graph2visu
 
@@ -138,7 +138,7 @@ def individu_graph_merged_visualization_formating(input_graph, reference_graph):
 		if graph2visu.node[node].get('ref_list', 0) != 0:
 			graph2visu.node[node]['ref_list'] = str(";".join(sorted(graph2visu.node[node]['ref_list'])))
 		else:
-			graph2visu.node[node]['reads_list_n'] = len(set(graph2visu.node[node]['reads_list_n']))
+			graph2visu.node[node]['read_list_n'] = len(set(graph2visu.node[node]['read_list_n']))
 			graph2visu.node[node]['length'] = 1
 			del graph2visu.node[node]['fragment']
 			if node in reference_graph:
