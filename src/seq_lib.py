@@ -8,7 +8,7 @@ import random
 
 
 # For an allowed mismatch rate during cutting = 0.1
-FASTQFILE_PATH = "data/fastq/all_pool_trimmed0.1"
+FASTQFILE_PATH = "data/fastq/fastq454v40.1"
 
 pattern = re.compile('([NC])_(\d+)_(\d+)')
 read_library = {'N':{},'C':{}}

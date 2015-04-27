@@ -55,30 +55,29 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	G_test = IG(fastq, kmer_length)
 	G_test.graph_cleaned_init(min_support_percentage)  # .dbgclean creation
 	G_test.graph_rmRefEdges_init(G_test.dbgclean, G_ref)  # .dbg_refrm creation
-	# G_test.dict_path_alternative_init(G_ref) # .path_alternative creation
 	# For visualisation
 	# Graph
-	# G_test_visu = VISU.individu_graph_visualization_formating(G_test.dbg.copy(), G_ref.copy())
-	# G_test_clean_visu = VISU.individu_graph_visualization_formating(G_test.dbgclean.copy(), G_ref.copy())
+	G_test_visu = VISU.individu_graph_visualization_formating(G_test.dbg.copy(), G_ref.copy())
+	G_test_clean_visu = VISU.individu_graph_visualization_formating(G_test.dbgclean.copy(), G_ref.copy())
 
-	# graph_name = "G_%s_" % sample_key
-	# cleaned_graph_name = graph_name + "clean%d_" % min_support_percentage
+	graph_name = "G_%s_" % sample_key
+	cleaned_graph_name = graph_name + "clean%d_" % min_support_percentage
 
-	# # nx.write_gml(G_test_visu, destination_directory + "/" + graph_name + str(kmer_length) + ".gml")
-	# # nx.write_gml(G_test_clean_visu, destination_directory + "/" + cleaned_graph_name + str(kmer_length) + ".gml")
+	nx.write_gml(G_test_visu, destination_directory + "/" + graph_name + str(kmer_length) + ".gml")
+	nx.write_gml(G_test_clean_visu, destination_directory + "/" + cleaned_graph_name + str(kmer_length) + ".gml")
 
 
 	# # Graph merged
-	# G_test_merged = VISU.merge_individu_graph(G_test.dbg.copy(), G_ref.copy())
-	# G_test_clean_merged = VISU.merge_individu_graph(G_test.dbgclean.copy(), G_ref.copy())
-	# G_test_merged_visu = VISU.individu_graph_merged_visualization_formating(G_test_merged.copy(), G_ref.copy())
-	# G_test_clean_merged_visu = VISU.individu_graph_merged_visualization_formating(G_test_clean_merged.copy(), G_ref.copy())
+	G_test_merged = VISU.merge_individu_graph(G_test.dbg.copy(), G_ref.copy())
+	G_test_clean_merged = VISU.merge_individu_graph(G_test.dbgclean.copy(), G_ref.copy())
+	G_test_merged_visu = VISU.individu_graph_merged_visualization_formating(G_test_merged.copy(), G_ref.copy())
+	G_test_clean_merged_visu = VISU.individu_graph_merged_visualization_formating(G_test_clean_merged.copy(), G_ref.copy())
 
-	# merged_graph_name = "G_%s_merged_" % sample_key
-	# merged_cleaned_graph_name = graph_name + "clean%d_merged_" % min_support_percentage
+	merged_graph_name = "G_%s_merged_" % sample_key
+	merged_cleaned_graph_name = graph_name + "clean%d_merged_" % min_support_percentage
 
-	# nx.write_gml(G_test_merged_visu, destination_directory + "/" + merged_graph_name + str(kmer_length) + ".gml")
-	# nx.write_gml(G_test_clean_merged_visu, destination_directory + "/" + merged_cleaned_graph_name + str(kmer_length) + ".gml")
+	nx.write_gml(G_test_merged_visu, destination_directory + "/" + merged_graph_name + str(kmer_length) + ".gml")
+	nx.write_gml(G_test_clean_merged_visu, destination_directory + "/" + merged_cleaned_graph_name + str(kmer_length) + ".gml")
 
 	### Permutation test ###
 
