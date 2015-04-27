@@ -84,21 +84,25 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 
 	G_test.alteration_list_init(G_ref, kmer_length)  # .alteration_list creation
 	# print time.strftime('%d/%m/%y %H:%M', time.localtime())
+
 	logger.info("Will create random graphs")
 	for i in range(0, n_permutations):
 		G_random = RRG(G_test.coverage, kmer_length)
 		for i_alteration in range(0, len(G_test.alteration_list)):
-			G_test.alteration_list[i_alteration].random_count_list.append(G_random.check_path(G_test.alteration_list[i_alteration].alternative_path))
+			G_random_data = G_random.check_path(G_test.alteration_list[i_alteration].reference_path,G_test.alteration_list[i_alteration].alternative_path) 
+			G_test.alteration_list[i_alteration].random_ratio_list.append(G_random_data[0])
+			G_test.alteration_list[i_alteration].random_reference_count_list.append(G_random_data[1])
+			G_test.alteration_list[i_alteration].random_alternative_count_list.append(G_random_data[2])
 
 	logger.info("Will generate p-values")
 	for i_alteration in range(0, len(G_test.alteration_list)):
 		G_test.alteration_list[i_alteration].pvalue_init()
-		print "%s\t%s\t%s\t%f\t%d" % (
+		print "%s\t%s\t%s\t%f\t%f" % (
 		sample_key,
 		G_test.alteration_list[i_alteration].reference_sequence,
 		G_test.alteration_list[i_alteration].alternative_sequence,
-		G_test.alteration_list[i_alteration].pvalue,
-		G_test.alteration_list[i_alteration].read_count
+		G_test.alteration_list[i_alteration].pvalue_ratio,
+		G_test.alteration_list[i_alteration].ratio_read_count
 		)
 
 
