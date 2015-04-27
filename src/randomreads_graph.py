@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf8
 import networkx as nx 
-import seq_library as SL
+import seq_lib as SL
 
 class randomreads_graph:
 
