@@ -17,7 +17,9 @@ class RandomReadsGraph:
 
 		read_list = SL.sampling(self.coverage)
 		self.dbg = nx.DiGraph()
-		for i_read in range(0, len(read_list)):
+		logger.info("Will process %d reads",len(read_list))
+		# for i_read in range(0, len(read_list)):
+		for i_read in range(0, len(read_list[0:1000])):
 
 			this_read=read_list[i_read]
 			if this_read not in cached_kmers:
@@ -187,7 +189,7 @@ initial_seq="".join(an_alt_path)
 #
 
 # %timeit SL.sampling({"N": 1200, "C": 1200})
-# a_rrg = RandomReadsGraph({"N": 1200, "C": 1200}, k=20)
+%timeit a_rrg = RandomReadsGraph({"N": 1200, "C": 1200}, k=20)
 # a_rrg.build_read_set_for_path(an_alt_path, verbose=True)
 # len(a_ref_path)
 # a_rrg.build_read_set_for_path(a_ref_path, verbose=True)

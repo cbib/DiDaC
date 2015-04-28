@@ -45,8 +45,7 @@ def build_read_library():
 	return read_library
 
 
-if 'rebuild_library' in sys.argv:
-
+def build_serialize_library():
 	logger.info("will rebuild library")
 	read_library = build_read_library()
 	logger.info("Will save %d items", len(read_library['N'])+len(read_library['C']))
@@ -57,8 +56,15 @@ if 'rebuild_library' in sys.argv:
 		f.write(packed_docs)
 
 	logger.info("Serialized to file %s" % tgt_file)
+if 'rebuild_library' in sys.argv:
+	build_serialize_library()
 else:
+
 	avail_files = {x: x.split("_") for x in glob.glob("data/seq/all_pool_trimmed0.1_*_*.packb")}.items()
+	if len(avail_files)<1:
+		logger.info("Force rebuilding")
+		build_serialize_library()
+		avail_files = {x: x.split("_") for x in glob.glob("data/seq/all_pool_trimmed0.1_*_*.packb")}.items()
 	avail_files.sort(key=lambda x: float(x[1][3]), reverse=True)
 	most_recent = avail_files[0][0]
 
