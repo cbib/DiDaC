@@ -56,6 +56,7 @@ def build_serialize_library():
 		f.write(packed_docs)
 
 	logger.info("Serialized to file %s" % tgt_file)
+
 if 'rebuild_library' in sys.argv:
 	build_serialize_library()
 else:
