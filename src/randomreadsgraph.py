@@ -8,23 +8,18 @@ import seq_lib as SL
 logger = init_logger("RANDGRAPH")
 
 
-cached_kmers={}
 
 class RandomReadsGraph:
 	def __init__(self, coverage_dict, k):
-		global cached_kmers
+
 		self.coverage = coverage_dict
 
 		read_list = SL.sampling(self.coverage)
 		self.dbg = nx.DiGraph()
-		logger.info("Will process %d reads",len(read_list))
-		# for i_read in range(0, len(read_list)):
-		for i_read in range(0, len(read_list[0:1000])):
 
+		for i_read in range(0, len(read_list)):
 			this_read=read_list[i_read]
-			if this_read not in cached_kmers:
-				cached_kmers[this_read]=[this_read[i:i+20] for i in xrange(len(this_read)-k)]
-			kkmers=cached_kmers[this_read]
+			kkmers=[this_read[i:i+20] for i in xrange(len(this_read)-k)]
 			# these_edges=[(f1,f2) for f1,f2 in zip(kkmers,kkmers[1:])]
 			self.dbg.add_path(kkmers)
 
