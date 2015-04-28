@@ -1,10 +1,12 @@
 import os
 import time
 import datetime
-from numpy import mean
+# from numpy import mean
 
 __author__ = 'hayssam'
 
+def mean(vec):
+	return sum(vec)*1.0/len(vec)
 
 def time_iterator(an_iter, logger, delta_percent=0.01, msg_prefix=None, tot_items=None):
 	tot_items = tot_items or len(an_iter)
