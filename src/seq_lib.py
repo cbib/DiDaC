@@ -9,7 +9,7 @@ import msgpack
 import time
 import glob
 import sys
-from helpers.helpers import time_iterator
+from helpers.helpers import time_iterator, get_or_create_dir
 from helpers.logger import init_logger
 
 logger = init_logger('SEQLIB')
@@ -51,6 +51,8 @@ def build_serialize_library():
 	logger.info("Will save %d items", len(read_library['N'])+len(read_library['C']))
 	packed_docs = msgpack.packb(read_library, default=lambda x: x.__dict__)
 	logger.info("Packed to %d chars", len(packed_docs))
+	get_or_create_dir("data")
+	get_or_create_dir("data/seq")
 	tgt_file = "data/seq/all_pool_trimmed0.1_%s_%d.packb" % ((int(time.time())), len(read_library))
 	with open(tgt_file, "w") as f:
 		f.write(packed_docs)
