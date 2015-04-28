@@ -189,7 +189,7 @@ initial_seq="".join(an_alt_path)
 #
 
 # %timeit SL.sampling({"N": 1200, "C": 1200})
-%timeit a_rrg = RandomReadsGraph({"N": 1200, "C": 1200}, k=20)
+# %timeit a_rrg = RandomReadsGraph({"N": 1200, "C": 1200}, k=20)
 # a_rrg.build_read_set_for_path(an_alt_path, verbose=True)
 # len(a_ref_path)
 # a_rrg.build_read_set_for_path(a_ref_path, verbose=True)
