@@ -21,7 +21,7 @@ from randomreadsgraph import RandomReadsGraph as RRG
 logger.info("Import finished")
 
 
-def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file=None, min_support_percentage=3, n_permutations=1000, destination_directory=".", export_gml=False):
+def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file=None, min_support_percentage=1, n_permutations=1000, destination_directory=".", export_gml=False):
 	# global g_ref, fastq, g_test, g_test_visu, g_test_clean_visu, g_test_merged, g_test_clean_merged, g_test_merged_visu, g_test_clean_merged_visu, i, g_random, i_alteration, G_test_pval_clean, nodes_to_rm, G_test_pval_clean_merged, G_test_pval_clean_merged_visu
 
 	# g_ref construction
