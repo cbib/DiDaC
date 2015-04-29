@@ -75,10 +75,10 @@ else:
 	with open(most_recent, "r") as f:
 		read_library = msgpack.unpack(f)
 	# un_packed_idx = [(ObjectId(x[0]), x[1]) for x in un_packed_idx]
-	logger.info("De-Serialized %d read lib" % (len(read_library['N'])+len(read_library['C'])))  # Sampling fonction from a coverage dict (with keys 'N' et 'C')
+	logger.info("De-Serialized %d read lib" % (len(read_library['N'])+len(read_library['C'])))  
 
 
-
+# Sampling fonction from a coverage dict (with keys 'N' et 'C')
 def sampling(coverage_dict):
 	read_sampling = []
 	for fragment, coverage in coverage_dict.items():

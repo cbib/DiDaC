@@ -30,7 +30,6 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 
 
 	# TODO: Test presence of cycles, abort if yes
-	# TODO: Create output gml dir if needed
 
 	# G_ref_merge = VISU.merge_reference_graph(g_ref.copy())
 	# G_ref_visu = VISU.reference_graph_visualization_formatting(g_ref.copy())
@@ -46,8 +45,8 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	g_test = IG(fastq, kmer_length)
 	g_test.graph_cleaned_init(min_support_percentage)  # .dbgclean creation
 	g_test.graph_rmRefEdges_init(g_test.dbgclean, g_ref)  # .dbg_refrm creation
+
 	# For visualisation
-	# Graph
 	graph_name = "G_%s_" % sample_key
 	if export_gml:
 		logger.info("Will save viz graph for %s with k==%d", fastq, kmer_length)
@@ -75,7 +74,6 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	### Permutation test ###
 
 	g_test.alteration_list_init(g_ref, kmer_length)  # .alteration_list creation
-	# print time.strftime('%d/%m/%y %H:%M', time.localtime())
 
 	logger.info("Will create random graphs")
 	all_possible_kmers=set()

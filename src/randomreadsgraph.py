@@ -109,7 +109,7 @@ class RandomReadsGraph:
 		if len(ref_path_read_set) == 0:
 			logger.critical("Empty REF read set for path %s", reference_path)
 		if len(alt_path_read_set) + len(ref_path_read_set) == 0:
-			ratio = float('+inf')
+			ratio = 0
 		else:
 			ratio = float(len(alt_path_read_set)) / (len(alt_path_read_set) + len(ref_path_read_set))
 		return ratio, len(ref_path_read_set), len(alt_path_read_set)
