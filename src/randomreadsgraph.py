@@ -2,7 +2,7 @@
 # coding=utf8
 import collections
 import networkx as nx
-# from helpers.logger import init_logger
+from helpers.logger import init_logger
 import seq_lib as SL
 
 
