@@ -8,7 +8,7 @@ class alteration:
 		self.reference_read_count = reference_read_count
 		self.alternative_read_count = alternative_read_count
 
-		self.ratio_read_count = float(alternative_read_count) / (alternative_read_count+reference_read_count)
+		self.ratio_read_count = float(alternative_read_count) / (reference_read_count + alternative_read_count)
 		self.random_ratio_list = []
 		self.random_reference_count_list = []
 		self.random_alternative_count_list = []

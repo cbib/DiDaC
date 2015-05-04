@@ -81,6 +81,22 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 		all_possible_kmers.update(an_alt.reference_path)
 		all_possible_kmers.update(an_alt.alternative_path)
 
+	# ICI
+	# for i_alteration in [12,27]:
+	# for i_alteration in [1,2,11]:
+	# for i_alteration in range(0, len(g_test.alteration_list)):
+	# 	print i_alteration
+	# 	print "%s\n%s\n avec node de Depart%s\n et node de Fin%s\nref%f\nalt%fratio%s" % (
+	# 		g_test.alteration_list[i_alteration].reference_sequence,
+	# 		g_test.alteration_list[i_alteration].alternative_sequence,
+	# 		g_test.alteration_list[i_alteration].reference_path[0],
+	# 		g_test.alteration_list[i_alteration].reference_path[len(g_test.alteration_list[i_alteration].reference_path)-1],
+	# 		g_test.alteration_list[i_alteration].reference_read_count,
+	# 		g_test.alteration_list[i_alteration].alternative_read_count, 
+	# 		g_test.alteration_list[i_alteration].ratio_read_count
+
+	# 	)
+
 	for i, j in time_iterator(range(0, n_permutations), logger, msg_prefix="permuting"):
 		g_random = RRG(g_test.coverage, kmer_length,restrict_to=all_possible_kmers)
 		for i_alteration in range(0, len(g_test.alteration_list)):
@@ -88,6 +104,11 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 			g_test.alteration_list[i_alteration].random_ratio_list.append(g_random_data[0])
 			g_test.alteration_list[i_alteration].random_reference_count_list.append(g_random_data[1])
 			g_test.alteration_list[i_alteration].random_alternative_count_list.append(g_random_data[2])
+
+	# ICI
+	# for i_alteration in [12,27]:
+	# 	print i_alteration
+	# 	print g_test.alteration_list[i_alteration].random_ratio_list
 
 	logger.info("Will generate p-values")
 	for i_alteration in range(0, len(g_test.alteration_list)):

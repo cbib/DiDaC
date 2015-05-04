@@ -5,6 +5,7 @@ import re
 from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 import networkx as nx
+import swalign
 
 from alteration import alteration as ALT
 from helpers.logger import init_logger
@@ -12,6 +13,12 @@ from helpers.logger import init_logger
 
 pattern = re.compile('([NC])_(\d+)_(\d+)')
 logger = init_logger("individu graph")
+
+## For SWA alignment
+match = 2
+mismatch = -1
+scoring = swalign.NucleotideScoringMatrix(match, mismatch)
+sw = swalign.LocalAlignment(scoring)
 
 
 class IndividuGraph:
@@ -90,20 +97,49 @@ class IndividuGraph:
 					for node in alternative_path:
 						read_set_pathAlt_G_sample.append(set(self.dbg_refrm.node[node]['read_list_n']))
 					intersect_allnodes_pathAlt_G_sample = set.intersection(*read_set_pathAlt_G_sample)
+					# Reference path choice
+					reference_path_list = []
+					for i_path in nx.all_simple_paths(G_ref, node_start, node_end):
+						reference_path_list.append(i_path)
+					if len(reference_path_list) > 1 :
+						alignment_score = 0
+						alternative_sequence = ALT.kmerpathToSeq(alternative_path,k)
+						for i_reference_path in range(0,len(reference_path_list)):
+							reference_sequence = ALT.kmerpathToSeq(reference_path_list[i_reference_path],k)
+							alignment = sw.align(alternative_sequence,reference_sequence)
+							if alignment.score > alignment_score:
+								alignment_score = alignment.score
+								reference_path = reference_path_list[i_reference_path]
+							elif alignment.score == alignment_score:
+								# faire un set des ref_list de tous les noeuds et conserver le path de référence qui est de taille minimum
+								# ref_list_check = lambda x: set(G_ref.node[x]['ref_list'].keys())
+								old_ref_list_set = []
+								new_ref_list_set = []
+								for node2check in reference_path:
+									old_ref_list_set += G_ref.node[node2check]['ref_list'].keys()
+									# old_ref_list_set.add(ref_list_check(node2check))
+								for node2check in reference_path_list[i_reference_path]:
+									new_ref_list_set += G_ref.node[node2check]['ref_list'].keys()
+									# new_ref_list_set.add(ref_list_check(node2check))
+								if len(old_ref_list_set) > len(new_ref_list_set):
+									reference_path = reference_path_list[i_reference_path]
+								elif len(old_ref_list_set) == len(new_ref_list_set):
+								 	print "IMPLEMENTER POUR CHOIX"
+					else:
+						reference_path = reference_path_list[0]
 					# Read intersection of all nodes in the reference path for G_sample 
-					for reference_path in nx.all_simple_paths(G_ref, node_start, node_end):
-						condition = 0
-						read_set_pathRef_G_sample = []
-						for node in reference_path:
-							if node not in self.dbg:
+					condition = 0
+					read_set_pathRef_G_sample = []
+					for node in reference_path:
+						if node not in self.dbg:
 								# print ("path de référence non représenté dans GDB individu")
-								condition = 1
-								intersect_allnodes_pathRef_G_sample = "0"
-								break
-							read_set_pathRef_G_sample.append(set(self.dbg.node[node]['read_list_n']))
-						if condition == 0:
-							intersect_allnodes_pathRef_G_sample = set.intersection(*read_set_pathRef_G_sample)
-						self.alteration_list.append(ALT(reference_path, alternative_path, len(intersect_allnodes_pathRef_G_sample), len(intersect_allnodes_pathAlt_G_sample), k))
+							condition = 1 
+							intersect_allnodes_pathRef_G_sample = "0"
+							break
+						read_set_pathRef_G_sample.append(set(self.dbg.node[node]['read_list_n']))
+					if condition == 0:
+						intersect_allnodes_pathRef_G_sample = set.intersection(*read_set_pathRef_G_sample)
+					self.alteration_list.append(ALT(reference_path, alternative_path, len(intersect_allnodes_pathRef_G_sample), len(intersect_allnodes_pathAlt_G_sample), k))
 
 
 # logger.info("start building")
