@@ -126,6 +126,10 @@ class IndividuGraph:
 									reference_path = reference_path_list[i_reference_path]
 								elif len(old_ref_list_set) == len(new_ref_list_set):
 								 	logger.critical("Same et size of reference paths")
+					elif len(reference_path_list) == 0:
+						logger.critical("No reference path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])
+						logger.critical("Alternative path : %s",alternative_path)
+						continue
 					else:
 						reference_path = reference_path_list[0]
 					# Read intersection of all nodes in the reference path for G_sample 

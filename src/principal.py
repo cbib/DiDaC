@@ -41,7 +41,7 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	fastq = [c_fastq_file, n_fastq_file]
 	fastq = [f for f in fastq if f]
 
-	logger.info("Will build sample graph for %s with k==%d", fastq, kmer_length)
+	logger.info("Will build sample graph for %s with k==%d and minimum support (percentage) = %d", fastq, kmer_length, min_support_percentage)
 	g_test = IG(fastq, kmer_length)
 	g_test.graph_cleaned_init(min_support_percentage)  # .dbgclean creation
 	g_test.graph_rmRefEdges_init(g_test.dbgclean, g_ref)  # .dbg_refrm creation
