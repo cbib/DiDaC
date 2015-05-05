@@ -105,20 +105,31 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 			g_test.alteration_list[i_alteration].random_reference_count_list.append(g_random_data[1])
 			g_test.alteration_list[i_alteration].random_alternative_count_list.append(g_random_data[2])
 
-	# ICI
-	# for i_alteration in [12,27]:
-	# 	print i_alteration
-	# 	print g_test.alteration_list[i_alteration].random_ratio_list
-
 	logger.info("Will generate p-values")
 	for i_alteration in range(0, len(g_test.alteration_list)):
 		g_test.alteration_list[i_alteration].pvalue_init()
-		print "%s\t%s\t%s\t%f\t%f" % (
-			sample_key,
-			g_test.alteration_list[i_alteration].reference_sequence,
-			g_test.alteration_list[i_alteration].alternative_sequence,
-			g_test.alteration_list[i_alteration].pvalue_ratio,
-			g_test.alteration_list[i_alteration].ratio_read_count
+		# print "%s\t%s\t%s\t%f\t%f" % (
+		# 	sample_key,
+		# 	g_test.alteration_list[i_alteration].reference_sequence,
+		# 	g_test.alteration_list[i_alteration].alternative_sequence,
+		# 	g_test.alteration_list[i_alteration].pvalue_ratio,
+		# 	g_test.alteration_list[i_alteration].ratio_read_count
+		# )
+
+	g_test.significant_alteration_list_init()
+	# ICI
+	
+	if len(g_test.significant_alteration_list) > 1:
+		g_test.multiple_alternative_path_filter()
+
+	for i_alteration in range(0, len(g_test.significant_alteration_list)):
+		print "%d\t%s\t%s\t%s\t%f\t%f" % (
+		i_alteration,
+		sample_key,
+		g_test.significant_alteration_list[i_alteration].reference_sequence,
+		g_test.significant_alteration_list[i_alteration].alternative_sequence,
+		g_test.significant_alteration_list[i_alteration].pvalue_ratio,
+		g_test.significant_alteration_list[i_alteration].ratio_read_count
 		)
 
 

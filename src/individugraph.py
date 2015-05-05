@@ -7,6 +7,7 @@ from Bio.Alphabet import generic_dna
 import networkx as nx
 import swalign
 
+import collections
 from alteration import alteration as ALT
 from helpers.logger import init_logger
 
@@ -124,7 +125,7 @@ class IndividuGraph:
 								if len(old_ref_list_set) > len(new_ref_list_set):
 									reference_path = reference_path_list[i_reference_path]
 								elif len(old_ref_list_set) == len(new_ref_list_set):
-								 	print "IMPLEMENTER POUR CHOIX"
+								 	logger.critical("Same et size of reference paths")
 					else:
 						reference_path = reference_path_list[0]
 					# Read intersection of all nodes in the reference path for G_sample 
@@ -141,7 +142,37 @@ class IndividuGraph:
 						intersect_allnodes_pathRef_G_sample = set.intersection(*read_set_pathRef_G_sample)
 					self.alteration_list.append(ALT(reference_path, alternative_path, len(intersect_allnodes_pathRef_G_sample), len(intersect_allnodes_pathAlt_G_sample), k))
 
+	def significant_alteration_list_init(self):
+		self.significant_alteration_list = []
+		for alteration in self.alteration_list:
+		 	if alteration.pvalue_ratio < 0.001:
+				self.significant_alteration_list.append(alteration)
 
+	def multiple_alternative_path_filter(self):
+		to_remove = []
+		node_dict = {"end":collections.defaultdict(list),"start":collections.defaultdict(list)}
+		for i_alteration in range(0, len(self.significant_alteration_list)):
+			node_start = self.significant_alteration_list[i_alteration].reference_path[0]
+			node_end = self.significant_alteration_list[i_alteration].reference_path[len(self.significant_alteration_list[i_alteration].reference_path)-1]
+			node_dict["start"][node_start].append(i_alteration)
+			node_dict["end"][node_end].append(i_alteration)
+		for extremity in node_dict.keys():
+			for node,liste_of_alterations in node_dict[extremity].items():
+				if len(node_dict[extremity][node]) > 1:
+					ratio_max = 0
+					for i_alteration in node_dict[extremity][node]:
+						if self.significant_alteration_list[i_alteration].ratio_read_count > ratio_max:
+							ratio_max = self.significant_alteration_list[i_alteration].ratio_read_count
+					# print ratio_max
+					for i_alteration in node_dict[extremity][node]:
+						if self.significant_alteration_list[i_alteration].ratio_read_count != ratio_max:	
+						# 	# print "coucou%d"%(i_alteration)
+							to_remove.append(self.significant_alteration_list[i_alteration])
+		for alteration in to_remove:
+			self.significant_alteration_list.remove(alteration)
+
+						# print "A deter::%s\t%s\t%s"%(extremity,node,str(node_dict[extremity][node]))
+						# print "%f"%(self.significant_alteration_list[i_alteration].ratio_read_count)
 # logger.info("start building")
 # foo = IndividuGraph(['data/fastq/all_pool_trimmed0.1/C_169_1.fastq', 'data/fastq/all_pool_trimmed0.1/N_169_1.fastq'], 20)
 # foo.graph_cleaned_init(3)  # .dbgclean creation

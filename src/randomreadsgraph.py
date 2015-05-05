@@ -104,10 +104,10 @@ class RandomReadsGraph:
 	def check_path(self, reference_path, alternative_path):
 		ref_path_read_set = self.build_read_set_for_path(reference_path)
 		alt_path_read_set = self.build_read_set_for_path(alternative_path)
-		if len(alt_path_read_set) == 0:
-			logger.critical("Empty ALT read set for path %s", alternative_path)
-		if len(ref_path_read_set) == 0:
-			logger.critical("Empty REF read set for path %s", reference_path)
+		# if len(alt_path_read_set) == 0:
+		# 	logger.critical("Empty ALT read set for path %s", alternative_path)
+		# if len(ref_path_read_set) == 0:
+		# 	logger.critical("Empty REF read set for path %s", reference_path)
 		if len(alt_path_read_set) + len(ref_path_read_set) == 0:
 			ratio = 0
 		else:
