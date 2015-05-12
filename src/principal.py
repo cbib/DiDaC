@@ -137,8 +137,8 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 		)
 		print alignments
 		if len(alignments) > 1:
-			logger.critical("More than one alignements for %s vs %s", g_test.significant_alteration_list[i_alteration].reference_sequence,g_test.significant_alteration_list[i_alteration].alternative_sequence) 
-			alignments = [alignments[0]]
+			logger.critical("More than one alignment for %s vs %s", g_test.significant_alteration_list[i_alteration].reference_sequence,g_test.significant_alteration_list[i_alteration].alternative_sequence) 
+			alignments = [alignments[len(alignments)-1]]
 		uncompact_cigar = ""
 		compact_cigard = []
 		for i_nucleotide in range(0,alignments[0][4]):
@@ -164,22 +164,29 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 		if len(compact_cigard) == 6:
 			# TO CONTINUE
 			alteration_type = compact_cigard[3]
+			print g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']
+			if len(g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']) == 1:
+				splicing_variant = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'].keys()[0]
+			elif "NM_000546.5" in g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']:
+				splicing_variant = "NM_000546.5"
+			elif "NM_001126114.2" in g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']:
+				splicing_variant = "NM_001126114.2"
 			if alteration_type == "X":
 				# c.76A>T
 				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
 				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
-				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']['NM_000546.5']+compact_cigard[0]
-				print "NM_000546.5:c.%d%s>%s"%(position,reference,alteration)
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
+				print "%s:c.%d%s>%s"%(splicing_variant,position,reference,alteration)
 			elif alteration_type == "D":
 				# c.76_78delACT
 				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
-				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']['NM_000546.5']+compact_cigard[0]+1
-				print "NM_000546.5:c.%d_%ddel%s"%(position,position+len(reference)-1,reference)
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]+1
+				print "%s:c.%d_%ddel%s"%(splicing_variant,position,position+len(reference)-1,reference)
 			else:
 				# c.76_77insG
 				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
-				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']['NM_000546.5']+compact_cigard[0]+1
-				print "NM_000546.5:c.%d_%dins%s"%(position,position+1,alteration)
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]+1
+				print "%s:c.%d_%dins%s"%(splicing_variant,position,position+1,alteration)
 
 
 

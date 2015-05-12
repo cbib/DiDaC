@@ -172,7 +172,7 @@ class IndividuGraph:
 						if self.significant_alteration_list[i_alteration].ratio_read_count != ratio_max:	
 						# 	# print "coucou%d"%(i_alteration)
 							to_remove.append(self.significant_alteration_list[i_alteration])
-		for alteration in to_remove:
+		for alteration in set(to_remove):
 			self.significant_alteration_list.remove(alteration)
 
 						# print "A deter::%s\t%s\t%s"%(extremity,node,str(node_dict[extremity][node]))

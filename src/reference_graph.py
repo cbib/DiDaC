@@ -77,10 +77,10 @@ def ref_constructor(k):
 			next_kmer = seq_s[(i2 + 1):(i2 + 1 + k)]
 			if next_kmer not in dbg_ref:
 				dbg_ref.add_node(next_kmer, ref_list={all_records[i].name: i2 + startPosition[all_records[i].id]})
-			# else:
-				# dbg_ref.node[next_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].id]	
+			else:
+				dbg_ref.node[next_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].id]	
 			if curr_kmer in dbg_ref:
-				# dbg_ref.node[curr_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].id]
+				dbg_ref.node[curr_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].id]
 				if dbg_ref[curr_kmer].get(next_kmer, 0) == 0:
 					dbg_ref.add_edge(curr_kmer, next_kmer)
 			else:
