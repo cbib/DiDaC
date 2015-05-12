@@ -7,6 +7,11 @@ from argparse import ArgumentParser
 from helpers.helpers import time_iterator, get_or_create_dir
 from helpers.logger import init_logger
 
+### TEST ALIGNMENT
+from Bio import pairwise2
+
+### TEST ALIGNMENT
+
 logger = init_logger('PACBIOP53')
 
 ## parameters
@@ -19,6 +24,7 @@ from individugraph import IndividuGraph as IG
 from randomreadsgraph import RandomReadsGraph as RRG
 
 logger.info("Import finished")
+
 
 
 def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file=None, min_support_percentage=3, n_permutations=1000, destination_directory=".", export_gml=False):
@@ -81,22 +87,6 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 		all_possible_kmers.update(an_alt.reference_path)
 		all_possible_kmers.update(an_alt.alternative_path)
 
-	# ICI
-	# for i_alteration in [12,27]:
-	# for i_alteration in [1,2,11]:
-	# for i_alteration in range(0, len(g_test.alteration_list)):
-	# 	print i_alteration
-	# 	print "%s\n%s\n avec node de Depart%s\n et node de Fin%s\nref%f\nalt%fratio%s" % (
-	# 		g_test.alteration_list[i_alteration].reference_sequence,
-	# 		g_test.alteration_list[i_alteration].alternative_sequence,
-	# 		g_test.alteration_list[i_alteration].reference_path[0],
-	# 		g_test.alteration_list[i_alteration].reference_path[len(g_test.alteration_list[i_alteration].reference_path)-1],
-	# 		g_test.alteration_list[i_alteration].reference_read_count,
-	# 		g_test.alteration_list[i_alteration].alternative_read_count, 
-	# 		g_test.alteration_list[i_alteration].ratio_read_count
-
-	# 	)
-
 	for i, j in time_iterator(range(0, n_permutations), logger, msg_prefix="permuting"):
 		g_random = RRG(g_test.coverage, kmer_length,restrict_to=all_possible_kmers)
 		for i_alteration in range(0, len(g_test.alteration_list)):
@@ -108,20 +98,18 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	logger.info("Will generate p-values")
 	for i_alteration in range(0, len(g_test.alteration_list)):
 		g_test.alteration_list[i_alteration].pvalue_init()
-		# print "%s\t%s\t%s\t%f\t%f" % (
-		# 	sample_key,
-		# 	g_test.alteration_list[i_alteration].reference_sequence,
-		# 	g_test.alteration_list[i_alteration].alternative_sequence,
-		# 	g_test.alteration_list[i_alteration].pvalue_ratio,
-		# 	g_test.alteration_list[i_alteration].ratio_read_count
-		# )
+		print "%s\t%s\t%s\t%f\t%f" % (
+			sample_key,
+			g_test.alteration_list[i_alteration].reference_sequence,
+			g_test.alteration_list[i_alteration].alternative_sequence,
+			g_test.alteration_list[i_alteration].pvalue_ratio,
+			g_test.alteration_list[i_alteration].ratio_read_count
+		)
 
 	g_test.significant_alteration_list_init()
 	# ICI
-	
-	if len(g_test.significant_alteration_list) > 1:
-		g_test.multiple_alternative_path_filter()
 
+	print "Are significant:"
 	for i_alteration in range(0, len(g_test.significant_alteration_list)):
 		print "%d\t%s\t%s\t%s\t%f\t%f" % (
 		i_alteration,
@@ -131,6 +119,71 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 		g_test.significant_alteration_list[i_alteration].pvalue_ratio,
 		g_test.significant_alteration_list[i_alteration].ratio_read_count
 		)
+	
+	if len(g_test.significant_alteration_list) > 1:
+		g_test.multiple_alternative_path_filter()
+
+
+	print "After filtering:"
+	for i_alteration in range(0, len(g_test.significant_alteration_list)):
+		alignments = pairwise2.align.globalms(g_test.significant_alteration_list[i_alteration].reference_sequence, g_test.significant_alteration_list[i_alteration].alternative_sequence, 2, -3, -5, -2)
+		print "%d\t%s\t%s\t%s\t%f\t%f" % (
+		i_alteration,
+		sample_key,
+		g_test.significant_alteration_list[i_alteration].reference_sequence,
+		g_test.significant_alteration_list[i_alteration].alternative_sequence,
+		g_test.significant_alteration_list[i_alteration].pvalue_ratio,
+		g_test.significant_alteration_list[i_alteration].ratio_read_count
+		)
+		print alignments
+		if len(alignments) > 1:
+			logger.critical("More than one alignements for %s vs %s", g_test.significant_alteration_list[i_alteration].reference_sequence,g_test.significant_alteration_list[i_alteration].alternative_sequence) 
+			alignments = [alignments[0]]
+		uncompact_cigar = ""
+		compact_cigard = []
+		for i_nucleotide in range(0,alignments[0][4]):
+			if alignments[0][0][i_nucleotide] == alignments[0][1][i_nucleotide] :
+				uncompact_cigar += "M"
+			elif alignments[0][0][i_nucleotide] == "-":
+				uncompact_cigar += "I"
+			elif alignments[0][1][i_nucleotide] == "-":
+				uncompact_cigar += "D"
+			else:
+				uncompact_cigar += "X"
+		print uncompact_cigar
+		operation = uncompact_cigar[0]
+		count = 0
+		for i_nucleotide in range(0,len(uncompact_cigar)):
+			if uncompact_cigar[i_nucleotide] != operation:
+				compact_cigard += [count,operation]
+				operation = uncompact_cigar[i_nucleotide]
+				count = 0
+			count += 1
+		compact_cigard += [count,operation]
+		print compact_cigard
+		if len(compact_cigard) == 6:
+			# TO CONTINUE
+			alteration_type = compact_cigard[3]
+			if alteration_type == "X":
+				# c.76A>T
+				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
+				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']['NM_000546.5']+compact_cigard[0]
+				print "NM_000546.5:c.%d%s>%s"%(position,reference,alteration)
+			elif alteration_type == "D":
+				# c.76_78delACT
+				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']['NM_000546.5']+compact_cigard[0]+1
+				print "NM_000546.5:c.%d_%ddel%s"%(position,position+len(reference)-1,reference)
+			else:
+				# c.76_77insG
+				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']['NM_000546.5']+compact_cigard[0]+1
+				print "NM_000546.5:c.%d_%dins%s"%(position,position+1,alteration)
+
+
+
+
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ VE_anno_file = data_directory + "/VE_anno.tab"
 dbsnp_list_file = data_directory + "/dbsnp.tab"
 dbsnp_anno_file = data_directory + "/dbsnp_anno.tab"
 fasta_list = [data_directory + "/p53var1.fasta", data_directory + "/p53var3.fasta", data_directory + "/p53var4.fasta"]
+end_3prime_utr = 202
 
 ####################################################
 ####################################################
@@ -56,33 +57,33 @@ def ref_constructor(k):
 		for record in SeqIO.parse(f, "fasta", generic_dna):
 			record.name = VE_dict[record.id]['name']
 			# For each SNP, record of the 2 k-mers around it for all VE
-			if record.name == "NM_000546":
+			if record.name == "NM_000546.5":
 				for rs in Anno_hash:
 					alt_pos = int(Anno_hash[rs]['pos'])
 					kmer_around = str(record.seq[alt_pos - k - 1:alt_pos - 1] + Anno_hash[rs]['alt'].complement() + record.seq[alt_pos:alt_pos + k])
 					all_records.append(SeqRecord(Seq(kmer_around, generic_dna), id=rs, name=rs))
-					startPosition[rs] = alt_pos - k
+					startPosition[rs] = alt_pos - k - end_3prime_utr
 			fragment = str(record.seq[int(VE_dict[record.id]['N_fgmt'].split(":")[0]) - 1:int(VE_dict[record.id]['N_fgmt'].split(":")[1]) - 1])
-			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'N', name=record.name + "_" + 'N'))
-			startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0])
+			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'N', name=record.name))
+			startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0]) - end_3prime_utr
 			fragment = str(record.seq[int(VE_dict[record.id]['C_fgmt'].split(":")[0]) - 1:int(VE_dict[record.id]['C_fgmt'].split(":")[1]) - 1])
-			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'C', name=record.name + "_" + 'C'))
-			startPosition[record.name + "_" + 'C'] = int(VE_dict[record.id]['C_fgmt'].split(":")[0])
+			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'C', name=record.name))
+			startPosition[record.name + "_" + 'C'] = int(VE_dict[record.id]['C_fgmt'].split(":")[0]) - end_3prime_utr
 	# Graph construction
 	for i in range(0, len(all_records)):
 		seq_s = str(all_records[i].seq)
 		for i2 in range(0, len(seq_s) - k):
 			curr_kmer = seq_s[(i2):(i2 + k)]
 			next_kmer = seq_s[(i2 + 1):(i2 + 1 + k)]
-			if next_kmer in dbg_ref:
-				dbg_ref.node[next_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].name]
-			else:
-				dbg_ref.add_node(next_kmer, ref_list={all_records[i].name: i2 + startPosition[all_records[i].name]})
+			if next_kmer not in dbg_ref:
+				dbg_ref.add_node(next_kmer, ref_list={all_records[i].name: i2 + startPosition[all_records[i].id]})
+			# else:
+				# dbg_ref.node[next_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].id]	
 			if curr_kmer in dbg_ref:
-				dbg_ref.node[curr_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].name]
+				# dbg_ref.node[curr_kmer]['ref_list'][all_records[i].name] = i2 + startPosition[all_records[i].id]
 				if dbg_ref[curr_kmer].get(next_kmer, 0) == 0:
 					dbg_ref.add_edge(curr_kmer, next_kmer)
 			else:
-				dbg_ref.add_node(curr_kmer, ref_list={all_records[i].name: i2 + startPosition[all_records[i].name]})
+				dbg_ref.add_node(curr_kmer, ref_list={all_records[i].name: i2 + startPosition[all_records[i].id]})
 				dbg_ref.add_edge(curr_kmer, next_kmer)
 	return dbg_ref
