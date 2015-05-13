@@ -17,7 +17,7 @@ VE_anno_file = data_directory + "/VE_anno.tab"
 dbsnp_list_file = data_directory + "/dbsnp.tab"
 dbsnp_anno_file = data_directory + "/dbsnp_anno.tab"
 fasta_list = [data_directory + "/p53var1.fasta", data_directory + "/p53var3.fasta", data_directory + "/p53var4.fasta"]
-end_3prime_utr = 202
+# end_3prime_utr = 202
 
 ####################################################
 ####################################################
@@ -65,10 +65,12 @@ def ref_constructor(k):
 					startPosition[rs] = alt_pos - k - end_3prime_utr
 			fragment = str(record.seq[int(VE_dict[record.id]['N_fgmt'].split(":")[0]) - 1:int(VE_dict[record.id]['N_fgmt'].split(":")[1]) - 1])
 			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'N', name=record.name))
-			startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0]) - end_3prime_utr
+			startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0]) 
+			# startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0]) - end_3prime_utr
 			fragment = str(record.seq[int(VE_dict[record.id]['C_fgmt'].split(":")[0]) - 1:int(VE_dict[record.id]['C_fgmt'].split(":")[1]) - 1])
 			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'C', name=record.name))
-			startPosition[record.name + "_" + 'C'] = int(VE_dict[record.id]['C_fgmt'].split(":")[0]) - end_3prime_utr
+			# startPosition[record.name + "_" + 'C'] = int(VE_dict[record.id]['C_fgmt'].split(":")[0]) - end_3prime_utr
+			startPosition[record.name + "_" + 'C'] = int(VE_dict[record.id]['C_fgmt'].split(":")[0]) 
 	# Graph construction
 	for i in range(0, len(all_records)):
 		seq_s = str(all_records[i].seq)
