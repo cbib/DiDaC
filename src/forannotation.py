@@ -9,7 +9,7 @@ def alteration_list_to_transcrit_mutation(g_test,g_ref):
 		# print alignments
 		if len(alignments) > 1:
 			logger.critical("More than one alignment for %s vs %s", g_test.significant_alteration_list[i_alteration].reference_sequence,g_test.significant_alteration_list[i_alteration].alternative_sequence) 
-			alignments = [alignments[len(alignments)-1]]
+			alignments = [alignments[0]]
 		uncompact_cigar = ""
 		compact_cigard = []
 		for i_nucleotide in range(0,alignments[0][4]):
