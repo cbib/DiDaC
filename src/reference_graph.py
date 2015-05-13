@@ -62,11 +62,12 @@ def ref_constructor(k):
 					alt_pos = int(Anno_hash[rs]['pos'])
 					kmer_around = str(record.seq[alt_pos - k - 1:alt_pos - 1] + Anno_hash[rs]['alt'].complement() + record.seq[alt_pos:alt_pos + k])
 					all_records.append(SeqRecord(Seq(kmer_around, generic_dna), id=rs, name=rs))
-					startPosition[rs] = alt_pos - k - end_3prime_utr
+					# startPosition[rs] = alt_pos - k - end_3prime_utr
+					startPosition[rs] = alt_pos - k 
 			fragment = str(record.seq[int(VE_dict[record.id]['N_fgmt'].split(":")[0]) - 1:int(VE_dict[record.id]['N_fgmt'].split(":")[1]) - 1])
 			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'N', name=record.name))
-			startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0]) 
 			# startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0]) - end_3prime_utr
+			startPosition[record.name + "_" + 'N'] = int(VE_dict[record.id]['N_fgmt'].split(":")[0]) 
 			fragment = str(record.seq[int(VE_dict[record.id]['C_fgmt'].split(":")[0]) - 1:int(VE_dict[record.id]['C_fgmt'].split(":")[1]) - 1])
 			all_records.append(SeqRecord(Seq(fragment, generic_dna), id=record.name + "_" + 'C', name=record.name))
 			# startPosition[record.name + "_" + 'C'] = int(VE_dict[record.id]['C_fgmt'].split(":")[0]) - end_3prime_utr
