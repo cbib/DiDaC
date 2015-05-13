@@ -46,15 +46,15 @@ def alteration_list_to_transcrit_mutation(g_test,g_ref):
 				# c.76A>T
 				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
 				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
-				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]
 				print "%s:c.%d%s>%s"%(splicing_variant,position,reference,alteration)
 			elif alteration_type == "D":
 				# c.76_78delACT
 				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
-				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]+1
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
 				print "%s:c.%d_%ddel%s"%(splicing_variant,position,position+len(reference)-1,reference)
 			else:
 				# c.76_77insG
 				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
-				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]+1
+				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
 				print "%s:c.%d_%dins%s"%(splicing_variant,position,position+1,alteration)
