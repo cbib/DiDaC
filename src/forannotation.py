@@ -58,3 +58,6 @@ def alteration_list_to_transcrit_mutation(g_test,g_ref):
 				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
 				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
 				print "%s:c.%d_%dins%s"%(splicing_variant,position,position+1,alteration)
+		else:
+			logger.critical("More than one alteration: for %s",compact_cigard)
+			

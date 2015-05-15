@@ -98,6 +98,9 @@ class IndividuGraph:
 					for node in alternative_path:
 						read_set_pathAlt_G_sample.append(set(self.dbg_refrm.node[node]['read_list_n']))
 					intersect_allnodes_pathAlt_G_sample = set.intersection(*read_set_pathAlt_G_sample)
+					if len(intersect_allnodes_pathAlt_G_sample) == 0:
+						logger.critical("No read on path %s to(ref list : %s read support : %d) and %s (ref list : %s read support : %d)",node_start,str(G_ref.node[node_start]['ref_list']),len(self.dbg_refrm.node[alternative_path[1]]['read_list_n']),node_end,G_ref.node[node_end]['ref_list'],len(self.dbg_refrm.node[alternative_path[len(alternative_path)-2]]['read_list_n']))
+						continue
 					# Reference path choice
 					reference_path_list = []
 					for i_path in nx.all_simple_paths(G_ref, node_start, node_end):
@@ -127,7 +130,7 @@ class IndividuGraph:
 								elif len(old_ref_list_set) == len(new_ref_list_set):
 								 	logger.critical("Same et size of reference paths")
 					elif len(reference_path_list) == 0:
-						logger.critical("No reference path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])
+						logger.critical("No reference path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])						
 						logger.critical("Alternative path : %s",alternative_path)
 						continue
 					else:
