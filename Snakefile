@@ -1,5 +1,5 @@
 
-NPERM=10000
+NPERM=1000
 
 rule process_sample:
 	input: c_term="data/fastq/all_pool_trimmed0.1/C_{SAMPLE}.fastq", n_term="data/fastq/all_pool_trimmed0.1/N_{SAMPLE}.fastq"
