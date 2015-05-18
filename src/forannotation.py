@@ -47,17 +47,17 @@ def alteration_list_to_transcrit_mutation(g_test,g_ref):
 				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
 				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
 				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
-				print "%s:c.%d%s>%s"%(splicing_variant,position,reference,alteration)
+				print "%s:c.%d%s>%s\t%d\t%d\t%d"%(splicing_variant,position,reference,alteration,g_test.significant_alteration_list[i_alteration].reference_read_count,g_test.significant_alteration_list[i_alteration].alternative_read_count,g_test.significant_alteration_list[i_alteration].pvalue_ratio)
 			elif alteration_type == "D":
 				# c.76_78delACT
 				reference = g_test.significant_alteration_list[i_alteration].reference_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
 				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
-				print "%s:c.%d_%ddel%s"%(splicing_variant,position,position+len(reference)-1,reference)
+				print "%s:c.%d_%ddel%s\t%d\t%d\t%d"%(splicing_variant,position,position+len(reference)-1,reference,g_test.significant_alteration_list[i_alteration].reference_read_count,g_test.significant_alteration_list[i_alteration].alternative_read_count,g_test.significant_alteration_list[i_alteration].pvalue_ratio)
 			else:
 				# c.76_77insG
 				alteration = g_test.significant_alteration_list[i_alteration].alternative_sequence[compact_cigard[0]:compact_cigard[0]+compact_cigard[2]]
 				position = g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list'][splicing_variant]+compact_cigard[0]
-				print "%s:c.%d_%dins%s"%(splicing_variant,position,position+1,alteration)
+				print "%s:c.%d_%dins%s\t%d\t%d\t%d"%(splicing_variant,position,position+1,alteration,g_test.significant_alteration_list[i_alteration].reference_read_count,g_test.significant_alteration_list[i_alteration].alternative_read_count,g_test.significant_alteration_list[i_alteration].pvalue_ratio)
 		else:
 			logger.critical("More than one alteration: for %s",compact_cigard)
 			
