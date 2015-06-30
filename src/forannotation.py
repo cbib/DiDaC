@@ -33,7 +33,6 @@ def alteration_list_to_transcrit_mutation(g_test,g_ref):
 		compact_cigard += [count,operation]
 		# print compact_cigard
 		if len(compact_cigard) == 6:
-			# TO CONTINUE
 			alteration_type = compact_cigard[3]
 			# print g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']
 			if len(g_ref.node[g_test.significant_alteration_list[i_alteration].reference_path[0]]['ref_list']) == 1:

@@ -152,7 +152,8 @@ class IndividuGraph:
 	def significant_alteration_list_init(self):
 		self.significant_alteration_list = []
 		for alteration in self.alteration_list:
-		 	if alteration.pvalue_ratio < 0.001:
+			# Pour avoir l'ensemble des paths dans signif alt list
+		 	if alteration.pvalue_ratio < 2:
 				self.significant_alteration_list.append(alteration)
 
 	def multiple_alternative_path_filter(self):
@@ -170,10 +171,8 @@ class IndividuGraph:
 					for i_alteration in node_dict[extremity][node]:
 						if self.significant_alteration_list[i_alteration].ratio_read_count > ratio_max:
 							ratio_max = self.significant_alteration_list[i_alteration].ratio_read_count
-					# print ratio_max
 					for i_alteration in node_dict[extremity][node]:
 						if self.significant_alteration_list[i_alteration].ratio_read_count != ratio_max:	
-						# 	# print "coucou%d"%(i_alteration)
 							to_remove.append(self.significant_alteration_list[i_alteration])
 		for alteration in set(to_remove):
 			self.significant_alteration_list.remove(alteration)

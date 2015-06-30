@@ -93,12 +93,20 @@ class RandomReadsGraph:
 			# 	logger.critical("Missing edge between %s -> %s",a_path[i],a_node)
 
 			if not (a_path[i],a_node) in self.possible_pairs:
-				logger.critical("Missing edge between %s -> %s",a_path[i],a_node)
+				logger.critical("Missing edge between %s -> %s. Actual read set is of size %d",a_path[i],a_node,len(current_set))
+
 
 			# current_set.intersection_update(self.dbg.node[a_node]['read_list_n'])
 			current_set.intersection_update(self.kmer_map[a_node])
+
+			if not (a_path[i],a_node) in self.possible_pairs:
+				logger.critical("Missing edge between %s -> %s. After update, read set is of size %d",a_path[i],a_node,len(current_set))
+
 			if verbose:
 				print len(current_set)
+			if len(current_set)<1:
+				# premature exit, we reached an empty set 	
+				return current_set
 		return current_set
 
 	def check_path(self, reference_path, alternative_path):
