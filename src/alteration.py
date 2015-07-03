@@ -8,7 +8,7 @@ class alteration:
 		self.reference_read_count = reference_read_count
 		self.alternative_read_count = alternative_read_count
 
-		self.ratio_read_count = float(alternative_read_count) / (alternative_read_count+reference_read_count)
+		self.ratio_read_count = float(alternative_read_count) / (reference_read_count + alternative_read_count)
 		self.random_ratio_list = []
 		self.random_reference_count_list = []
 		self.random_alternative_count_list = []
@@ -17,7 +17,7 @@ class alteration:
 		self.alternative_sequence = alteration.kmerpathToSeq(self.alternative_path,k)
 		
 	def pvalue_init(self):
-		self.pvalue_count = float(len([i for i in self.random_alternative_count_list if i >= self.alternative_read_count])) / len(self.random_alternative_count_list)
+		# self.pvalue_count = float(len([i for i in self.random_alternative_count_list if i >= self.alternative_read_count])) / len(self.random_alternative_count_list)
 		self.pvalue_ratio = float(len([i for i in self.random_ratio_list if i >= self.ratio_read_count])) / len(self.random_ratio_list)
 
 	@staticmethod

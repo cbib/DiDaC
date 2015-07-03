@@ -5,13 +5,21 @@ import re
 from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 import networkx as nx
+import swalign
 
+import collections
 from alteration import alteration as ALT
 from helpers.logger import init_logger
 
 
 pattern = re.compile('([NC])_(\d+)_(\d+)')
 logger = init_logger("individu graph")
+
+## For SWA alignment
+match = 2
+mismatch = -1
+scoring = swalign.NucleotideScoringMatrix(match, mismatch)
+sw = swalign.LocalAlignment(scoring)
 
 
 class IndividuGraph:
@@ -90,22 +98,87 @@ class IndividuGraph:
 					for node in alternative_path:
 						read_set_pathAlt_G_sample.append(set(self.dbg_refrm.node[node]['read_list_n']))
 					intersect_allnodes_pathAlt_G_sample = set.intersection(*read_set_pathAlt_G_sample)
+					if len(intersect_allnodes_pathAlt_G_sample) == 0:
+						logger.critical("No read on path %s to(ref list : %s read support : %d) and %s (ref list : %s read support : %d)",node_start,str(G_ref.node[node_start]['ref_list']),len(self.dbg_refrm.node[alternative_path[1]]['read_list_n']),node_end,G_ref.node[node_end]['ref_list'],len(self.dbg_refrm.node[alternative_path[len(alternative_path)-2]]['read_list_n']))
+						continue
+					# Reference path choice
+					reference_path_list = []
+					for i_path in nx.all_simple_paths(G_ref, node_start, node_end):
+						reference_path_list.append(i_path)
+					if len(reference_path_list) > 1 :
+						alignment_score = 0
+						alternative_sequence = ALT.kmerpathToSeq(alternative_path,k)
+						for i_reference_path in range(0,len(reference_path_list)):
+							reference_sequence = ALT.kmerpathToSeq(reference_path_list[i_reference_path],k)
+							alignment = sw.align(alternative_sequence,reference_sequence)
+							if alignment.score > alignment_score:
+								alignment_score = alignment.score
+								reference_path = reference_path_list[i_reference_path]
+							elif alignment.score == alignment_score:
+								# faire un set des ref_list de tous les noeuds et conserver le path de référence qui est de taille minimum
+								# ref_list_check = lambda x: set(G_ref.node[x]['ref_list'].keys())
+								old_ref_list_set = []
+								new_ref_list_set = []
+								for node2check in reference_path:
+									old_ref_list_set += G_ref.node[node2check]['ref_list'].keys()
+									# old_ref_list_set.add(ref_list_check(node2check))
+								for node2check in reference_path_list[i_reference_path]:
+									new_ref_list_set += G_ref.node[node2check]['ref_list'].keys()
+									# new_ref_list_set.add(ref_list_check(node2check))
+								if len(old_ref_list_set) > len(new_ref_list_set):
+									reference_path = reference_path_list[i_reference_path]
+								elif len(old_ref_list_set) == len(new_ref_list_set):
+								 	logger.critical("Same et size of reference paths")
+					elif len(reference_path_list) == 0:
+						logger.critical("No reference path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])						
+						logger.critical("Alternative path : %s",alternative_path)
+						continue
+					else:
+						reference_path = reference_path_list[0]
 					# Read intersection of all nodes in the reference path for G_sample 
-					for reference_path in nx.all_simple_paths(G_ref, node_start, node_end):
-						condition = 0
-						read_set_pathRef_G_sample = []
-						for node in reference_path:
-							if node not in self.dbg:
+					condition = 0
+					read_set_pathRef_G_sample = []
+					for node in reference_path:
+						if node not in self.dbg:
 								# print ("path de référence non représenté dans GDB individu")
-								condition = 1
-								intersect_allnodes_pathRef_G_sample = "0"
-								break
-							read_set_pathRef_G_sample.append(set(self.dbg.node[node]['read_list_n']))
-						if condition == 0:
-							intersect_allnodes_pathRef_G_sample = set.intersection(*read_set_pathRef_G_sample)
-						self.alteration_list.append(ALT(reference_path, alternative_path, len(intersect_allnodes_pathRef_G_sample), len(intersect_allnodes_pathAlt_G_sample), k))
+							condition = 1 
+							intersect_allnodes_pathRef_G_sample = "0"
+							break
+						read_set_pathRef_G_sample.append(set(self.dbg.node[node]['read_list_n']))
+					if condition == 0:
+						intersect_allnodes_pathRef_G_sample = set.intersection(*read_set_pathRef_G_sample)
+					self.alteration_list.append(ALT(reference_path, alternative_path, len(intersect_allnodes_pathRef_G_sample), len(intersect_allnodes_pathAlt_G_sample), k))
 
+	def significant_alteration_list_init(self):
+		self.significant_alteration_list = []
+		for alteration in self.alteration_list:
+			# Pour avoir l'ensemble des paths dans signif alt list
+		 	if alteration.pvalue_ratio < 2:
+				self.significant_alteration_list.append(alteration)
 
+	def multiple_alternative_path_filter(self):
+		to_remove = []
+		node_dict = {"end":collections.defaultdict(list),"start":collections.defaultdict(list)}
+		for i_alteration in range(0, len(self.significant_alteration_list)):
+			node_start = self.significant_alteration_list[i_alteration].reference_path[0]
+			node_end = self.significant_alteration_list[i_alteration].reference_path[len(self.significant_alteration_list[i_alteration].reference_path)-1]
+			node_dict["start"][node_start].append(i_alteration)
+			node_dict["end"][node_end].append(i_alteration)
+		for extremity in node_dict.keys():
+			for node,liste_of_alterations in node_dict[extremity].items():
+				if len(node_dict[extremity][node]) > 1:
+					ratio_max = 0
+					for i_alteration in node_dict[extremity][node]:
+						if self.significant_alteration_list[i_alteration].ratio_read_count > ratio_max:
+							ratio_max = self.significant_alteration_list[i_alteration].ratio_read_count
+					for i_alteration in node_dict[extremity][node]:
+						if self.significant_alteration_list[i_alteration].ratio_read_count != ratio_max:	
+							to_remove.append(self.significant_alteration_list[i_alteration])
+		for alteration in set(to_remove):
+			self.significant_alteration_list.remove(alteration)
+
+						# print "A deter::%s\t%s\t%s"%(extremity,node,str(node_dict[extremity][node]))
+						# print "%f"%(self.significant_alteration_list[i_alteration].ratio_read_count)
 # logger.info("start building")
 # foo = IndividuGraph(['data/fastq/all_pool_trimmed0.1/C_169_1.fastq', 'data/fastq/all_pool_trimmed0.1/N_169_1.fastq'], 20)
 # foo.graph_cleaned_init(3)  # .dbgclean creation

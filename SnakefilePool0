@@ -1,12 +1,10 @@
-
-
 rule process_sample:
 	input: c_term="data/fastq/all_pool_trimmed0.1/C_{SAMPLE}.fastq", n_term="data/fastq/all_pool_trimmed0.1/N_{SAMPLE}.fastq"
 	output: "output/alterations/{SAMPLE}.tsv"
 	log: "output/logs/{SAMPLE}.txt"
 	shell:
 		"""
-			python src/principal.py --samplekey {wildcards.SAMPLE} --cfastq {input.c_term} --nfastq {input.n_term} --npermutations 1000 > {output} 2> {log}
+			python src/principal.py --samplekey {wildcards.SAMPLE} --cfastq {input.c_term} --nfastq {input.n_term} --npermutations 10000 > {output} 2> {log}
 		"""
 
 sam2test = open("data/pool0_samples2analyse.txt",'r').readlines()

@@ -6,6 +6,7 @@ import networkx as nx
 from argparse import ArgumentParser
 from helpers.helpers import time_iterator, get_or_create_dir
 from helpers.logger import init_logger
+import sys
 
 logger = init_logger('PACBIOP53')
 
@@ -17,8 +18,10 @@ import reference_graph as RG
 import visualization as VISU
 from individugraph import IndividuGraph as IG
 from randomreadsgraph import RandomReadsGraph as RRG
+import forannotation as ANNO
 
 logger.info("Import finished")
+
 
 
 def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file=None, min_support_percentage=3, n_permutations=1000, destination_directory=".", export_gml=False):
@@ -28,26 +31,49 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	logger.info("Will build reference graph with k==%d", kmer_length)
 	g_ref = RG.ref_constructor(kmer_length)
 
-
-	# TODO: Test presence of cycles, abort if yes
-	# TODO: Create output gml dir if needed
-
 	# G_ref_merge = VISU.merge_reference_graph(g_ref.copy())
 	# G_ref_visu = VISU.reference_graph_visualization_formatting(g_ref.copy())
 	# G_ref_merge_visu = VISU.reference_graph_merged_visualization_formatting(G_ref_merge.copy())
 	# nx.write_gml(G_ref_visu,destination_directory+"/G_ref_visu"+str(k)+".gml")
 	# nx.write_gml(G_ref_merge_visu,destination_directory+"/G_ref_merge_visu"+str(k)+".gml")
+	
 	# G_ind construction
-
 	fastq = [c_fastq_file, n_fastq_file]
 	fastq = [f for f in fastq if f]
 
-	logger.info("Will build sample graph for %s with k==%d", fastq, kmer_length)
+	logger.info("Will build sample graph for %s with k==%d and minimum support (percentage) = %d", fastq, kmer_length, min_support_percentage)
 	g_test = IG(fastq, kmer_length)
 	g_test.graph_cleaned_init(min_support_percentage)  # .dbgclean creation
+
+
+	# Is there cycles ?
+	if list(nx.simple_cycles(g_test.dbgclean)):
+		if kmer_length > 50:
+			logger.info("There are always cycle(s) with k==50...exiting")
+			sys.exit(0)
+		# Check non depassement valeur limite de k 
+		return process_sample(kmer_length=kmer_length+1,sample_key=sample_key,c_fastq_file=c_fastq_file,n_fastq_file=n_fastq_file, min_support_percentage=min_support_percentage, n_permutations=n_permutations, destination_directory=destination_directory, export_gml=export_gml)
+
+	out_degree_g_test_dbg_dict = g_test.dbg.out_degree()
+
+	## Some prints for stats  
+	print "%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d"%(
+		kmer_length,
+		g_ref.size(),
+		sample_key,
+		g_test.coverage['C'],
+		g_test.coverage['N'],
+		g_test.dbg.size(),
+		g_test.dbgclean.size(),
+		g_test.dbg.in_degree().values().count(0),
+		g_test.dbg.out_degree().values().count(0),
+		g_test.dbgclean.in_degree().values().count(0),
+		g_test.dbgclean.out_degree().values().count(0)
+		)
+
 	g_test.graph_rmRefEdges_init(g_test.dbgclean, g_ref)  # .dbg_refrm creation
+
 	# For visualisation
-	# Graph
 	graph_name = "G_%s_" % sample_key
 	if export_gml:
 		logger.info("Will save viz graph for %s with k==%d", fastq, kmer_length)
@@ -75,7 +101,6 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	### Permutation test ###
 
 	g_test.alteration_list_init(g_ref, kmer_length)  # .alteration_list creation
-	# print time.strftime('%d/%m/%y %H:%M', time.localtime())
 
 	logger.info("Will create random graphs")
 	all_possible_kmers=set()
@@ -94,14 +119,50 @@ def process_sample(kmer_length, sample_key=None, c_fastq_file=None, n_fastq_file
 	logger.info("Will generate p-values")
 	for i_alteration in range(0, len(g_test.alteration_list)):
 		g_test.alteration_list[i_alteration].pvalue_init()
-		print "%s\t%s\t%s\t%f\t%f" % (
-			sample_key,
-			g_test.alteration_list[i_alteration].reference_sequence,
-			g_test.alteration_list[i_alteration].alternative_sequence,
-			g_test.alteration_list[i_alteration].pvalue_ratio,
-			g_test.alteration_list[i_alteration].ratio_read_count
+		# print "%s\t%s\t%s\t%f\t%f" % (
+		# 	sample_key,
+		# 	g_test.alteration_list[i_alteration].reference_sequence,
+		# 	g_test.alteration_list[i_alteration].alternative_sequence,
+		# 	g_test.alteration_list[i_alteration].pvalue_ratio,
+		# 	g_test.alteration_list[i_alteration].ratio_read_count
+		# )
+
+	g_test.significant_alteration_list_init()
+
+	# print "Are significant:"
+	# # for i_alteration in range(0, len(g_test.significant_alteration_list)):
+	# # 	print "%d\t%s\t%s\t%s\t%f\t%f" % (
+	# # 	i_alteration,
+	# # 	sample_key,
+	# # 	g_test.significant_alteration_list[i_alteration].reference_sequence,
+	# # 	g_test.significant_alteration_list[i_alteration].alternative_sequence,
+	# # 	g_test.significant_alteration_list[i_alteration].pvalue_ratio,
+	# # 	g_test.significant_alteration_list[i_alteration].ratio_read_count
+	# # 	)
+	
+	if len(g_test.significant_alteration_list) > 1:
+	 	g_test.multiple_alternative_path_filter()
+
+
+	print "#######"
+	for i_alteration in range(0, len(g_test.significant_alteration_list)):
+		print "%d\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%f\t%f\t%s" % (
+		i_alteration+1,
+		sample_key,
+		g_test.coverage['C'],
+		g_test.coverage['N'],
+		g_test.significant_alteration_list[i_alteration].reference_sequence,
+		g_test.significant_alteration_list[i_alteration].alternative_sequence,
+		g_test.significant_alteration_list[i_alteration].reference_read_count,
+		g_test.significant_alteration_list[i_alteration].alternative_read_count,
+		g_test.significant_alteration_list[i_alteration].ratio_read_count,
+		g_test.significant_alteration_list[i_alteration].pvalue_ratio,
+		"\t".join(map(str,g_test.significant_alteration_list[i_alteration].random_ratio_list))
 		)
 
+
+	### MICADo + ###
+	#ANNO.alteration_list_to_transcrit_mutation(g_test,g_ref)
 
 if __name__ == "__main__":
 	parser = ArgumentParser()
@@ -113,11 +174,6 @@ if __name__ == "__main__":
 	parser.add_argument("--destdir", help="Output directory", default="output/gml", type=str, required=False)
 	parser.add_argument("--export", help="Whether to export graphs to GML", action='store_true')
 
-	# k = 20
-	# c_fastq_file = "dbg/data/fatsq_test/C_158_1.fastq"
-	# n_fastq_file = "dbg/data/fatsq_test/N_158_1.fastq"
-	# sample_key = "158"
-	# n_permutations = 1000
 	args = parser.parse_args()
 
 	process_sample(kmer_length=args.kmer_length, c_fastq_file=args.cfastq, n_fastq_file=args.nfastq, n_permutations=args.npermutations, sample_key=args.samplekey,
