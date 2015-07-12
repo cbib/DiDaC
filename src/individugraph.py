@@ -28,6 +28,8 @@ class IndividuGraph:
 		self.alteration_list = []
 		self.dbg = nx.DiGraph()
 		self.dbgclean = None
+		self.kmer_start_set = set()
+		self.kmer_end_set = set()
 
 		for f in fastq_list:
 			fragment = pattern.search(f).group(1)
@@ -36,6 +38,9 @@ class IndividuGraph:
 			for record_s in SeqIO.parse(f, "fastq", generic_dna):
 				sequence = str(record_s.seq)
 				comp += 1
+				# For tips search
+				self.kmer_start_set.add(sequence[0:k])
+				self.kmer_end_set.add(sequence[len(sequence)-k:len(sequence)])
 				for i2 in range(0, len(sequence) - k):
 					curr_kmer = sequence[(i2):(i2 + k)]
 					next_kmer = sequence[(i2 + 1):(i2 + 1 + k)]
@@ -51,7 +56,6 @@ class IndividuGraph:
 						self.dbg.add_node(curr_kmer, read_list_n=set([fragment + "_" + str(comp)]), fragment=set([fragment]))
 						self.dbg.add_edge(curr_kmer, next_kmer)
 			self.coverage[fragment] = comp
-
 
 	# Compute coverage from a node for the graph .dbg 
 	def total_coverage_node(self, node):
@@ -79,19 +83,32 @@ class IndividuGraph:
 		self.dbg_refrm.remove_edges_from(G_ref.edges())
 
 	# Init list of alterations dictionnary
-	def alteration_list_init(self, G_ref, k):
+	def alteration_list_init(self, G_ref, k, alpha):
 		self.alteration_list = []
 		# Only nodes in dbg_refrm & G_ref and with in degree > 0 for end nodes and out degree > 0 for start nodes  
-		shared_nodes = list(set(self.dbg_refrm.nodes()) & set(G_ref.nodes()))
+		G_ref_nodes_set = set(G_ref.nodes())
+		shared_nodes = list(set(self.dbg_refrm.nodes()) & G_ref_nodes_set)
 		out_d = self.dbg_refrm.out_degree()
 		in_d = self.dbg_refrm.in_degree()
 		shared_nodes_start = [x for x in shared_nodes if out_d[x] > 0]
 		shared_nodes_end = [x for x in shared_nodes if in_d[x] > 0]
-		G_ref_nodes_set = set(G_ref.nodes())
+		# Add tips end & start in shared_nodes_end & start
+		out_degree_g_testclean_dict = self.dbgclean.out_degree()
+		in_degree_g_testclean_dict = self.dbgclean.in_degree()	
+		out_degree_g_ref_dict = G_ref.out_degree()
+		in_degree_g_ref_dict = G_ref.in_degree()
+		start_g_ref = [key for key, v in G_ref.in_degree().items() if in_degree_g_ref_dict[key] == 0][0] # only one in TP53
+		end_g_ref = [key for key, v in G_ref.out_degree().items() if out_degree_g_ref_dict[key] == 0][0] # only one in TP53
+		end_tips_list = [key for key, v in self.dbgclean.out_degree().items() if out_degree_g_testclean_dict[key] == 0 and key not in G_ref and key in self.kmer_end_set]
+		start_tips_list = [key for key, v in self.dbgclean.in_degree().items() if in_degree_g_testclean_dict[key] == 0 and key not in G_ref and key in self.kmer_start_set]
+		shared_nodes_start.extend(start_tips_list)
+		shared_nodes_end.extend(end_tips_list)
 		for node_start in shared_nodes_start:
+			start_node = node_start
 			for node_end in shared_nodes_end:
+				end_node = node_end
 				for alternative_path in nx.all_simple_paths(self.dbg_refrm, node_start, node_end):
-					if len(set(alternative_path) & G_ref_nodes_set) != 2:
+					if len(set(alternative_path) & G_ref_nodes_set) > 2:
 						continue
 					# Read intersection of all nodes in the alt path for G_sample 
 					read_set_pathAlt_G_sample = []
@@ -101,10 +118,40 @@ class IndividuGraph:
 					if len(intersect_allnodes_pathAlt_G_sample) == 0:
 						logger.critical("No read on path %s to(ref list : %s read support : %d) and %s (ref list : %s read support : %d)",node_start,str(G_ref.node[node_start]['ref_list']),len(self.dbg_refrm.node[alternative_path[1]]['read_list_n']),node_end,G_ref.node[node_end]['ref_list'],len(self.dbg_refrm.node[alternative_path[len(alternative_path)-2]]['read_list_n']))
 						continue
-					# Reference path choice
+					## Reference path choice
+					# Replace start/end if it's a tips
+					if node_start not in G_ref:
+						node_start = start_g_ref
+					reference_path_list = []
+					if node_end not in G_ref:
+						node_end = end_g_ref
 					reference_path_list = []
 					for i_path in nx.all_simple_paths(G_ref, node_start, node_end):
 						reference_path_list.append(i_path)
+					# if there is no reference path, check predecessors/successors of start/end nodes of the path (just +1 at this moment)
+					if len(reference_path_list) == 0:
+						reference_path_list_successor = [] 
+						reference_path_list_predecessor = [] 
+						for successor in G_ref.successors(node_end):
+							for i_path_successor in nx.all_simple_paths(G_ref, node_start ,successor):
+								reference_path_list_successor.append(i_path_successor)
+							if len(reference_path_list_successor) > 0:
+								alternative_path.append(successor)
+								node_end = successor
+								reference_path_list = reference_path_list_successor
+								break
+						for predecessor in G_ref.predecessors(node_start):
+							for i_path_predecessor in nx.all_simple_paths(G_ref, predecessor, node_end):
+								reference_path_list_predecessor.append(i_path_predecessor)
+							if len(reference_path_list_predecessor) > 0:
+								alternative_path.insert(0,predecessor)
+								node_start = predecessor
+								reference_path_list = reference_path_list_predecessor
+								break
+						if len(reference_path_list_predecessor) == 0 and len(reference_path_list_successor) == 0:
+							logger.critical("No reference path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])						
+							logger.critical("Alternative path : %s",alternative_path)
+							continue
 					if len(reference_path_list) > 1 :
 						alignment_score = 0
 						alternative_sequence = ALT.kmerpathToSeq(alternative_path,k)
@@ -129,10 +176,6 @@ class IndividuGraph:
 									reference_path = reference_path_list[i_reference_path]
 								elif len(old_ref_list_set) == len(new_ref_list_set):
 								 	logger.critical("Same et size of reference paths")
-					elif len(reference_path_list) == 0:
-						logger.critical("No reference path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])						
-						logger.critical("Alternative path : %s",alternative_path)
-						continue
 					else:
 						reference_path = reference_path_list[0]
 					# Read intersection of all nodes in the reference path for G_sample 
@@ -147,13 +190,16 @@ class IndividuGraph:
 						read_set_pathRef_G_sample.append(set(self.dbg.node[node]['read_list_n']))
 					if condition == 0:
 						intersect_allnodes_pathRef_G_sample = set.intersection(*read_set_pathRef_G_sample)
-					self.alteration_list.append(ALT(reference_path, alternative_path, len(intersect_allnodes_pathRef_G_sample), len(intersect_allnodes_pathAlt_G_sample), k))
+					self.alteration_list.append(ALT(reference_path, alternative_path, len(intersect_allnodes_pathRef_G_sample), len(intersect_allnodes_pathAlt_G_sample), k,max(self.total_coverage_node(node_start),self.total_coverage_node(node_end))*alpha/100))
+				# Replace start/end if it was a tips
+				node_end = end_node
+				node_start = start_node
 
 	def significant_alteration_list_init(self):
 		self.significant_alteration_list = []
 		for alteration in self.alteration_list:
 			# Pour avoir l'ensemble des paths dans signif alt list
-		 	if alteration.pvalue_ratio < 2:
+		 	if alteration.pvalue_ratio <= 0.001:
 				self.significant_alteration_list.append(alteration)
 
 	def multiple_alternative_path_filter(self):

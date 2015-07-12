@@ -16,7 +16,7 @@ data_directory = "data/ref"
 VE_anno_file = data_directory + "/VE_anno.tab"
 dbsnp_list_file = data_directory + "/dbsnp.tab"
 dbsnp_anno_file = data_directory + "/dbsnp_anno.tab"
-fasta_list = [data_directory + "/p53var1.fasta", data_directory + "/p53var3.fasta", data_directory + "/p53var4.fasta"]
+fasta_list = [data_directory + "/p53var1.fasta", data_directory + "/p53var3.fasta"] #, data_directory + "/p53var4.fasta"
 end_3prime_utr = 202
 
 ####################################################
