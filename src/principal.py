@@ -25,7 +25,6 @@ logger.info("Import finished")
 
 
 def process_sample(kmer_length, min_support_percentage,  n_permutations, sample_key=None, c_fastq_file=None, n_fastq_file=None, destination_directory=".", export_gml=False):
-	# global g_ref, fastq, g_test, g_test_visu, g_test_clean_visu, g_test_merged, g_test_clean_merged, g_test_merged_visu, g_test_clean_merged_visu, i, g_random, i_alteration, G_test_pval_clean, nodes_to_rm, G_test_pval_clean_merged, G_test_pval_clean_merged_visu
 
 	# g_ref construction
 	logger.info("Will build reference graph with k==%d", kmer_length)
@@ -48,20 +47,37 @@ def process_sample(kmer_length, min_support_percentage,  n_permutations, sample_
 		# Check non depassement valeur limite de k 
 		return process_sample(kmer_length=kmer_length+1,sample_key=sample_key,c_fastq_file=c_fastq_file,n_fastq_file=n_fastq_file, min_support_percentage=min_support_percentage, n_permutations=n_permutations, destination_directory=destination_directory, export_gml=export_gml)
 
-	## Some prints for stats  
-	# print "%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d"%(
-	# 	kmer_length,
-	# 	g_ref.size(),
-	# 	sample_key,
-	# 	g_test.coverage['C'],
-	# 	g_test.coverage['N'],
-	# 	g_test.dbg.size(),
-	# 	g_test.dbgclean.size(),
-	# 	g_test.dbg.in_degree().values().count(0),
-	# 	g_test.dbg.out_degree().values().count(0),
-	# 	g_test.dbgclean.in_degree().values().count(0),
-	# 	g_test.dbgclean.out_degree().values().count(0)
-	# 	)
+	# Some prints for stats 
+	dir_stat = get_or_create_dir("output/statistics") 
+	# graph stat
+	graph_stat_file = open(dir_stat+"/graph_stat_file"+sample_key+".tsv", 'w')
+	graph_stat_file.write(
+		"%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d"%(
+		kmer_length,
+		g_ref.size(),
+		sample_key,
+		g_test.coverage['C'],
+		g_test.coverage['N'],
+		g_test.dbg.size(),
+		g_test.dbgclean.size(),
+		g_test.dbg.in_degree().values().count(0),
+		g_test.dbg.out_degree().values().count(0),
+		g_test.dbgclean.in_degree().values().count(0),
+		g_test.dbgclean.out_degree().values().count(0)
+		))
+
+	# kmer stat
+	kmer_stat_file = open(dir_stat+"/kmer_stat_file"+sample_key+".tsv", 'w')
+	for node_print in g_test.dbg.nodes():
+		fragment_print = "".join(g_test.dbg.node[node_print]['fragment'])
+		reads_print = len(g_test.dbg.node[node_print]['read_list_n'])
+		kmer_stat_file.write(
+			"%s\t%s\t%s\t%d\n"%(
+			samplekey,
+			node_print,
+			fragment_print,
+			reads_print,
+			))
 
 	g_test.graph_rmRefEdges_init(g_test.dbgclean, g_ref)  # .dbg_refrm creation
 
@@ -91,10 +107,10 @@ def process_sample(kmer_length, min_support_percentage,  n_permutations, sample_
 		merged_cleaned_graph_name = graph_name + "clean%d_merged_" % min_support_percentage
 		nx.write_gml(g_test_clean_merged_visu, destination_directory + "/" + merged_cleaned_graph_name + str(kmer_length) + ".gml")
 
-	### Permutation test ###
 	# .alteration_list creation
 	g_test.alteration_list_init(g_ref, kmer_length,min_support_percentage)  
 
+	### Permutation test ###
 	logger.info("Will create random graphs")
 	all_possible_kmers=set()
 	for an_alt in g_test.alteration_list:
@@ -119,24 +135,27 @@ def process_sample(kmer_length, min_support_percentage,  n_permutations, sample_
 	if len(g_test.significant_alteration_list) > 1:
 	 	g_test.multiple_alternative_path_filter()
 
-	# for i_alteration in range(0, len(g_test.significant_alteration_list)):
-	# 	if g_test.significant_alteration_list[i_alteration].pvalue_ratio <= 1:
-	# 		print "%d\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%f\t%f" % (
-	# 		# print "%d\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%f\t%f\t%f\t%s" % (				
-	# 		i_alteration+1,
-	# 		sample_key,
-	# 		g_test.coverage['C'],
-	# 		g_test.coverage['N'],
-	# 		g_test.significant_alteration_list[i_alteration].reference_sequence,
-	# 		g_test.significant_alteration_list[i_alteration].alternative_sequence,
-	# 		g_test.significant_alteration_list[i_alteration].reference_read_count,
-	# 		g_test.significant_alteration_list[i_alteration].alternative_read_count,
-	# 		# g_test.significant_alteration_list[i_alteration].ratio_read_count,
-	# 		g_test.significant_alteration_list[i_alteration].pvalue_ratio,
-	# 		g_test.significant_alteration_list[i_alteration].zscore,
-	# 		# "\t".join(map(str,g_test.significant_alteration_list[i_alteration].random_ratio_list))
-	# 		)
-
+	## Stat 
+	# graph stat
+	alt_stat_file = open(dir_stat+"/alt_stat_file"+sample_key+".tsv", 'w')
+	for i_alteration in range(0, len(g_test.significant_alteration_list)):
+		if g_test.significant_alteration_list[i_alteration].pvalue_ratio <= 1:
+			# print "%d\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%f\t%f" % (
+			# alt_stat_file.write("%d\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%f\t%f\t%f\t%s" % (				
+			alt_stat_file.write("%d\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%f\t%f\t%s" % (				
+			i_alteration+1,
+			sample_key,
+			g_test.coverage['C'],
+			g_test.coverage['N'],
+			g_test.significant_alteration_list[i_alteration].reference_sequence,
+			g_test.significant_alteration_list[i_alteration].alternative_sequence,
+			g_test.significant_alteration_list[i_alteration].reference_read_count,
+			g_test.significant_alteration_list[i_alteration].alternative_read_count,
+			g_test.significant_alteration_list[i_alteration].ratio_read_count,
+			g_test.significant_alteration_list[i_alteration].pvalue_ratio,
+			# g_test.significant_alteration_list[i_alteration].zscore,
+			"\t".join(map(str,g_test.significant_alteration_list[i_alteration].random_ratio_list))
+			))
 
 	### MICADo + ###
 	ANNO.alteration_list_to_transcrit_mutation(g_test,g_ref)

@@ -116,14 +116,16 @@ class IndividuGraph:
 						read_set_pathAlt_G_sample.append(set(self.dbg_refrm.node[node]['read_list_n']))
 					intersect_allnodes_pathAlt_G_sample = set.intersection(*read_set_pathAlt_G_sample)
 					if len(intersect_allnodes_pathAlt_G_sample) == 0:
-						logger.critical("No read on path %s to(ref list : %s read support : %d) and %s (ref list : %s read support : %d)",node_start,str(G_ref.node[node_start]['ref_list']),len(self.dbg_refrm.node[alternative_path[1]]['read_list_n']),node_end,G_ref.node[node_end]['ref_list'],len(self.dbg_refrm.node[alternative_path[len(alternative_path)-2]]['read_list_n']))
+						# logger.critical("No read on path %s to(ref list : %s read support : %d) and %s (ref list : %s read support : %d)",node_start,str(G_ref.node[node_start]['ref_list']),len(self.dbg_refrm.node[alternative_path[1]]['read_list_n']),node_end,G_ref.node[node_end]['ref_list'],len(self.dbg_refrm.node[alternative_path[len(alternative_path)-2]]['read_list_n']))
 						continue
 					## Reference path choice
 					# Replace start/end if it's a tips
 					if node_start not in G_ref:
+						logger.critical("The node %s (read support : %d) is a tips(start)",node_start,len(self.dbg_refrm.node[alternative_path[1]]['read_list_n']))
 						node_start = start_g_ref
 					reference_path_list = []
 					if node_end not in G_ref:
+						logger.critical("The node %s (read support : %d) is a tips(end)",node_end,len(self.dbg_refrm.node[alternative_path[1]]['read_list_n']))
 						node_end = end_g_ref
 					reference_path_list = []
 					for i_path in nx.all_simple_paths(G_ref, node_start, node_end):
@@ -136,6 +138,7 @@ class IndividuGraph:
 							for i_path_successor in nx.all_simple_paths(G_ref, node_start ,successor):
 								reference_path_list_successor.append(i_path_successor)
 							if len(reference_path_list_successor) > 0:
+								logger.critical("Successor is add to the reference and alternative path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])										
 								alternative_path.append(successor)
 								node_end = successor
 								reference_path_list = reference_path_list_successor
@@ -144,6 +147,7 @@ class IndividuGraph:
 							for i_path_predecessor in nx.all_simple_paths(G_ref, predecessor, node_end):
 								reference_path_list_predecessor.append(i_path_predecessor)
 							if len(reference_path_list_predecessor) > 0:
+								logger.critical("Predecessor is add to the reference and alternative path between %s (ref list : %s) and %s (ref list : %s)",node_start,str(G_ref.node[node_start]['ref_list']),node_end,G_ref.node[node_end]['ref_list'])										
 								alternative_path.insert(0,predecessor)
 								node_start = predecessor
 								reference_path_list = reference_path_list_predecessor
@@ -199,7 +203,8 @@ class IndividuGraph:
 		self.significant_alteration_list = []
 		for alteration in self.alteration_list:
 			# Pour avoir l'ensemble des paths dans signif alt list
-		 	if alteration.pvalue_ratio <= 0.001:
+		 	# if alteration.pvalue_ratio <= 0.001:
+		 	if alteration.pvalue_ratio <= 1:
 				self.significant_alteration_list.append(alteration)
 
 	def multiple_alternative_path_filter(self):
