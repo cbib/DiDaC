@@ -73,7 +73,7 @@ def process_sample(kmer_length, min_support_percentage,  n_permutations, sample_
 		reads_print = len(g_test.dbg.node[node_print]['read_list_n'])
 		kmer_stat_file.write(
 			"%s\t%s\t%s\t%d\n"%(
-			samplekey,
+			sample_key,
 			node_print,
 			fragment_print,
 			reads_print,
